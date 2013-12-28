@@ -3,12 +3,12 @@
 class @Nest extends Visual
 
 	size: 80
-	ants: 30
+	ants: 50
 	food: 0
 
 	initialize: ->
 		@antEmitter = new Emitter
-			rate: 3000
+			rate: 1000
 			max: @ants
 			generator: =>
 				id = "ant:#{@newid()}"

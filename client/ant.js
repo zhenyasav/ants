@@ -10,7 +10,7 @@ colors = {
 };
 
 PheromoneEmitter = (function() {
-  PheromoneEmitter.prototype.rate = 1500;
+  PheromoneEmitter.prototype.rate = 350;
 
   function PheromoneEmitter(o) {
     _.extend(this, o);
@@ -20,14 +20,7 @@ PheromoneEmitter = (function() {
     var h, id, _ref;
     this.lastemit = Date.now();
     id = "smell:" + (this.world.newid()) + ":" + this.mood;
-    h = (function() {
-      switch (this.mood) {
-        case 'food':
-          return 1;
-        default:
-          return 0.1;
-      }
-    }).call(this);
+    h = 'food' in this.ant.baggage ? 0.9 : 0.1;
     return (_ref = this.world) != null ? _ref.addqueue.push([
       id, new Pheromone({
         id: id,
@@ -58,7 +51,7 @@ this.Ant = (function(_super) {
 
   Ant.prototype.size = 15;
 
-  Ant.prototype.fov = 140;
+  Ant.prototype.fov = 160;
 
   Ant.prototype.maxfood = 1;
 
@@ -73,7 +66,7 @@ this.Ant = (function(_super) {
       steer: 4
     },
     food: {
-      speed: 5,
+      speed: 8,
       steer: 2
     }
   };
@@ -103,12 +96,7 @@ this.Ant = (function(_super) {
       return min + Math.random() * (max - min);
     };
     brake = function() {
-      var retro;
-      retro = _this.speed.clone().negate();
-      if (retro.length() > _this.limits[_this.emitter.mood].steer) {
-        retro.setLength(_this.limits[_this.emitter.mood].steer);
-      }
-      return retro;
+      return new THREE.Vector3(0, 0, 0);
     };
     towards = function(p, minspeed) {
       var steer, targetspeed;
@@ -140,35 +128,25 @@ this.Ant = (function(_super) {
       return steer;
     };
     followNose = function(s) {
-      var avg, own, p, pheromones, sums, x, y, z;
+      var avg, own, p, pheromones;
       pheromones = _.select(s, function(f) {
         return f instanceof Pheromone;
       });
       p = new THREE.Vector3(0, 0, 0);
       if (pheromones.length) {
-        sums = {
-          x: 0,
-          y: 0,
-          z: 0
-        };
+        avg = new THREE.Vector3(0, 0, 0);
         _.each(pheromones, function(p) {
-          var d;
-          d = p.root.position.distanceTo(_this.root.position);
-          sums.x += p.root.position.x * p.health / d;
-          sums.y += p.root.position.y * p.health / d;
-          return sums.z += p.root.position.z * p.health / d;
+          var direction;
+          direction = p.root.position.clone().sub(_this.root.position);
+          return avg.add(direction.clone().setLength(10 * p.health / direction.length()));
         });
-        x = sums.x / pheromones.length;
-        y = sums.y / pheromones.length;
-        z = sums.z / pheromones.length;
-        avg = new THREE.Vector3(x, y, z);
-        p = towards(avg, _this.limits[_this.emitter.mood].speed * 0.5);
       }
-      if (!(p != null ? p.length() : void 0)) {
-        p = random();
+      if (!(avg != null ? avg.length() : void 0)) {
+        avg = random().setLength(_this.limits[_this.emitter.mood].speed);
       }
       own = _this.speed.clone().setLength(_this.limits[_this.emitter.mood].speed);
-      own.lerp(p, 0.8);
+      own.add(avg);
+      own.setLength(_this.limits[_this.emitter.mood].speed);
       return {
         mood: 'food' in _this.baggage ? 'food' : 'normal',
         steer: own
@@ -183,20 +161,20 @@ this.Ant = (function(_super) {
         if (nest != null ? nest.length : void 0) {
           nest = _.first(nest);
           distance = nest.root.position.clone().sub((_ref = _this.root) != null ? _ref.position : void 0);
-          if ((distance != null ? distance.length() : void 0) < 0.01) {
+          if ((distance != null ? distance.length() : void 0) < 5) {
             if (_this.speed.length() === 0) {
               nest.food += _this.baggage.food;
               console.log("NEST: " + nest.food);
               delete _this.baggage.food;
             }
             return {
-              mood: 'food',
-              steer: brake()
+              steer: brake(),
+              mood: 'food'
             };
           } else {
             return {
-              mood: 'food',
-              steer: towards(nest.root.position)
+              steer: towards(nest.root.position),
+              mood: 'food'
             };
           }
         } else {
@@ -209,7 +187,7 @@ this.Ant = (function(_super) {
         if (food.length) {
           nearest = _.first(food);
           distance = nearest != null ? (_ref1 = nearest.root) != null ? (_ref2 = _ref1.position) != null ? (_ref3 = _ref2.clone()) != null ? _ref3.sub((_ref4 = _this.root) != null ? _ref4.position : void 0) : void 0 : void 0 : void 0 : void 0;
-          if ((distance != null ? distance.length() : void 0) < 0.01) {
+          if ((distance != null ? distance.length() : void 0) < 5) {
             if (_this.speed.length() === 0) {
               if (_this.baggage.food == null) {
                 _this.baggage.food = 0;
@@ -218,13 +196,13 @@ this.Ant = (function(_super) {
               nearest.setSize(nearest.size - delta);
             }
             return {
-              mood: 'food',
-              steer: brake()
+              steer: brake(),
+              mood: 'food'
             };
           } else {
             return {
-              mood: 'food',
-              steer: towards(nearest.root.position)
+              steer: towards(nearest.root.position),
+              mood: 'food'
             };
           }
         } else {
@@ -235,10 +213,7 @@ this.Ant = (function(_super) {
     actions = {
       steer: function(d) {
         _this.speed = d;
-        _this.objects.arrow.lookAt(_this.speed);
-        if (_this.speed.length() > _this.limits[_this.emitter.mood].speed) {
-          _this.speed.setLength(_this.limits[_this.emitter.mood].speed);
-        }
+        _this.speed.setLength(_this.limits[_this.emitter.mood].speed);
         return _this.root.position.add(_this.speed);
       },
       mood: function(m) {

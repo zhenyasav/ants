@@ -13,14 +13,14 @@ this.Nest = (function(_super) {
 
   Nest.prototype.size = 80;
 
-  Nest.prototype.ants = 30;
+  Nest.prototype.ants = 50;
 
   Nest.prototype.food = 0;
 
   Nest.prototype.initialize = function() {
     var _this = this;
     return this.antEmitter = new Emitter({
-      rate: 3000,
+      rate: 1000,
       max: this.ants,
       generator: function() {
         var id;

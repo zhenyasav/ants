@@ -14,6 +14,7 @@ this.Food = (function(_super) {
   Food.prototype.size = 40;
 
   Food.prototype.setSize = function(s) {
+    console.log('setting food ' + s);
     if (!s) {
       this.world.remqueue.push(this.id);
       return 0;

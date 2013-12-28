@@ -1,6 +1,6 @@
 class @Emitter
 
-	rate: 500
+	rate: 300
 	max: 50
 
 	onemit: ->

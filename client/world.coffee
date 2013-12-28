@@ -4,7 +4,7 @@ class @World extends Visual
 
 	size: 1000
 	food: 30
-	ants: 2
+	ants: 50
 
 	observe: (pov, radius=100) -> 
 		obs = (v for k,v of @visuals when radius > Math.abs pov.distanceTo v.root.position)

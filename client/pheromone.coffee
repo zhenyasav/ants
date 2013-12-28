@@ -8,7 +8,7 @@ colors =
 class @Pheromone extends Visual
 
 	radius: 20
-	decay: 0.0005
+	decay: 0.001
 	maxopacity: 0.5
 
 	getcolor: ->

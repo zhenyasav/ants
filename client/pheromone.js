@@ -14,7 +14,7 @@ this.Pheromone = (function(_super) {
 
   Pheromone.prototype.radius = 20;
 
-  Pheromone.prototype.decay = 0.0005;
+  Pheromone.prototype.decay = 0.001;
 
   Pheromone.prototype.maxopacity = 0.5;
 

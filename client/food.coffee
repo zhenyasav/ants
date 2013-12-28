@@ -5,6 +5,9 @@ class @Food extends Visual
 	size: 40
 
 	setSize: (s) ->
+
+		console.log 'setting food ' + s
+
 		if not s
 			@world.remqueue.push @id
 			0

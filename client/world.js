@@ -15,7 +15,7 @@ this.World = (function(_super) {
 
   World.prototype.food = 30;
 
-  World.prototype.ants = 2;
+  World.prototype.ants = 50;
 
   World.prototype.observe = function(pov, radius) {
     var k, obs, result, v;

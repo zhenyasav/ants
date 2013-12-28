@@ -11,8 +11,7 @@ Meteor.startup(function() {
           world: function() {
             return new World({
               food: 50,
-              size: 3000,
-              ants: 10
+              size: 3000
             });
           }
         };

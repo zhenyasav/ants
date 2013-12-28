@@ -8,7 +8,7 @@ colors =
 
 class PheromoneEmitter
 
-	rate: 1500
+	rate: 350
 
 	constructor: (o) ->
 		_.extend @, o
@@ -20,9 +20,7 @@ class PheromoneEmitter
 
 		id = "smell:#{@world.newid()}:#{@mood}"
 		
-		h = switch @mood
-			when 'food' then 1
-			else 0.1
+		h = if 'food' of @ant.baggage then 0.9 else 0.1
 
 		@world?.addqueue.push [
 				id
@@ -48,7 +46,7 @@ class @Ant extends Visual
 
 	size: 15
 
-	fov: 140
+	fov: 160
 
 	maxfood: 1
 
@@ -61,7 +59,7 @@ class @Ant extends Visual
 			speed: 10
 			steer: 4
 		food:
-			speed: 5
+			speed: 8
 			steer: 2
 
 	constructor: (o) ->
@@ -82,13 +80,9 @@ class @Ant extends Visual
 	update: ->
 		super()
 
-		spread = (min,max) -> min + Math.random() * (max-min)
+		spread = (min,max) -> min + Math.random() * (max - min)
 
-		brake = =>
-			retro = @speed.clone().negate()
-			if retro.length() > @limits[@emitter.mood].steer
-				retro.setLength @limits[@emitter.mood].steer
-			retro
+		brake = => new THREE.Vector3 0,0,0
 
 		towards = (p, minspeed=0) =>
 
@@ -127,32 +121,23 @@ class @Ant extends Visual
 
 			if pheromones.length
 				
-				sums = 
-					x: 0
-					y: 0
-					z: 0
+				avg = new THREE.Vector3 0,0,0
 
 				_.each pheromones, (p) => 
-					d = p.root.position.distanceTo @root.position
 
-					sums.x += p.root.position.x * p.health / d
-					sums.y += p.root.position.y * p.health / d
-					sums.z += p.root.position.z * p.health / d
+					direction = p.root.position.clone().sub @root.position
 
-				x = sums.x / pheromones.length
-				y = sums.y / pheromones.length
-				z = sums.z / pheromones.length
+					avg.add direction.clone().setLength 10 * p.health / direction.length()
 
-				avg = new THREE.Vector3 x,y,z
 
-				p = towards avg, @limits[@emitter.mood].speed * 0.5
-
-			if not p?.length()
-				p = random()
+			if not avg?.length()
+				avg = random().setLength @limits[@emitter.mood].speed
 
 			own = @speed.clone().setLength @limits[@emitter.mood].speed
 
-			own.lerp p, 0.8
+			own.add avg
+
+			own.setLength @limits[@emitter.mood].speed
 
 			mood: if 'food' of @baggage then 'food' else 'normal'
 			steer: own
@@ -161,9 +146,9 @@ class @Ant extends Visual
 
 		think = (s) =>
 
-			
 
 			if 'food' of @baggage
+
 
 				nest = _.select s, (f) -> f instanceof Nest
 
@@ -174,7 +159,7 @@ class @Ant extends Visual
 					distance = nest.root.position.clone().sub @root?.position
 
 
-					if distance?.length() < 0.01
+					if distance?.length() < 5
 
 						if @speed.length() is 0
 
@@ -184,13 +169,14 @@ class @Ant extends Visual
 							
 							delete @baggage.food
 
-						mood: 'food'
+						
 						steer: brake()
+						mood: 'food'
 
 					else
 
-						mood: 'food'
 						steer: towards nest.root.position
+						mood: 'food'
 					
 
 				else
@@ -206,12 +192,10 @@ class @Ant extends Visual
 
 					nearest = _.first food
 
-
 					distance = nearest?.root?.position?.clone()?.sub @root?.position
 
-			
-					if distance?.length() < 0.01
-
+					if distance?.length() < 5
+						
 						if @speed.length() is 0
 
 							if not @baggage.food?
@@ -221,14 +205,13 @@ class @Ant extends Visual
 
 							nearest.setSize nearest.size - delta
 
-						mood: 'food'
 						steer: brake()
+						mood: 'food'
 
 					else
 
-
-						mood: 'food'
 						steer: towards nearest.root.position
+						mood: 'food'
 
 				else
 					
@@ -238,11 +221,8 @@ class @Ant extends Visual
 		actions =
 			steer: (d) => 
 				@speed = d
-
-				@objects.arrow.lookAt @speed
 				
-				if @speed.length() > @limits[@emitter.mood].speed
-					@speed.setLength @limits[@emitter.mood].speed
+				@speed.setLength @limits[@emitter.mood].speed
 
 				@root.position.add @speed
 			

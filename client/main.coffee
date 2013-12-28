@@ -12,7 +12,6 @@ Meteor.startup =>
 			world: -> new World
 				food: 50
 				size: 3000
-				ants: 10
 		
 
 	updates = null
