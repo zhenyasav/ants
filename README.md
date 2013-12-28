@@ -5,8 +5,8 @@ A small toy to play with a hive intelligence. Some simple rules are implemented 
 
 Enjoy! :)
 
-How to:
-_______
+Installation
+------------
 
 This thing runs on meteor and requires a WebGL browser.
 Check out meteor at http://meteor.com.
